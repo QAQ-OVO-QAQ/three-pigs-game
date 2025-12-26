@@ -3,102 +3,371 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>糖果屋：數位保存實驗室</title>
+    <title>糖果屋：位元腐敗迷宮</title>
     <style>
-        body { font-family: "Microsoft JhengHei", sans-serif; background-color: #222; color: #eee; display: flex; flex-direction: column; align-items: center; min-height: 100vh; margin: 0; padding: 20px; }
-        
-        .game-container { max-width: 600px; width: 100%; text-align: center; }
-        
-        .icon-large { font-size: 5rem; margin: 20px 0; animation: float 3s infinite ease-in-out; }
-        
-        .card { background: #333; padding: 20px; border-radius: 15px; margin-bottom: 20px; border: 1px solid #444; }
-        
-        h1 { color: #f1c40f; }
-        h2 { font-size: 1.2rem; color: #aaa; }
-        
-        .btn-group { display: flex; gap: 15px; justify-content: center; margin-top: 20px; }
-        button { padding: 15px 25px; font-size: 1.1rem; border: none; border-radius: 50px; cursor: pointer; transition: transform 0.2s; font-weight: bold; }
-        button:hover { transform: scale(1.05); opacity: 0.9; }
-        
-        .btn-stone { background: #95a5a6; color: #2c3e50; }
-        .btn-bread { background: #e67e22; color: white; }
-        .btn-reset { background: #3498db; color: white; margin-top: 20px; }
+        body {
+            font-family: "Courier New", monospace; /* 使用等寬字體更有數位感 */
+            background-color: #1a1a1a;
+            color: #ddd;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            user-select: none;
+        }
 
-        /* 圖書資訊 Metadata */
-        .library-note { background: #2c3e50; padding: 15px; border-left: 5px solid #f1c40f; text-align: left; margin-top: 30px; font-size: 0.9rem; line-height: 1.6; }
+        h1 { color: #f1c40f; margin-bottom: 5px; }
+        p.subtitle { color: #7f8c8d; font-size: 0.9rem; margin-bottom: 20px; }
+
+        /* 遊戲狀態列 */
+        .status-bar {
+            display: flex;
+            gap: 20px;
+            background: #333;
+            padding: 10px 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            border: 1px solid #555;
+        }
+
+        .stat-item { font-size: 1.1rem; font-weight: bold; }
+        .stone-count { color: #bdc3c7; }
+        .bread-count { color: #e67e22; }
+
+        /* 迷宮網格 */
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(5, 60px);
+            grid-template-rows: repeat(5, 60px);
+            gap: 5px;
+            background: #000;
+            padding: 10px;
+            border-radius: 5px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.5);
+            position: relative;
+        }
+
+        .cell {
+            width: 60px;
+            height: 60px;
+            background-color: #2c3e50;
+            border-radius: 4px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 2rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+        }
+
+        .cell.fog { background-color: #111; color: transparent; cursor: default; }
+        .cell.path-bread { font-size: 1.5rem; } 
+        .cell.path-stone { font-size: 1.5rem; border: 2px solid #fff; }
+        .cell.player { background-color: #3498db; box-shadow: 0 0 10px #3498db; z-index: 10; }
+        .cell.house { background-color: #e74c3c; }
+        .cell.start { background-color: #27ae60; }
+
+        /* 控制區 */
+        .controls { margin-top: 20px; text-align: center; }
+        .btn-action {
+            padding: 10px 20px;
+            font-size: 1rem;
+            margin: 5px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .btn-stone { background: #95a5a6; color: #000; }
+        .btn-bread { background: #e67e22; color: white; }
+        .btn-reset { background: #c0392b; color: white; margin-top: 20px; display: none;}
+
+        /* 訊息區 */
+        .log-box {
+            margin-top: 20px;
+            height: 100px;
+            width: 300px;
+            background: #000;
+            color: #2ecc71;
+            padding: 10px;
+            font-size: 0.85rem;
+            overflow-y: auto;
+            border: 1px solid #333;
+            font-family: monospace;
+        }
         
-        .hidden { display: none; }
-        @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+        .rotten { animation: rot 0.5s; color: #555 !important; }
+        @keyframes rot { 0% { transform: scale(1); } 50% { transform: scale(0.5); } 100% { transform: scale(0); } }
+
+        /* 圖資說明 */
+        .metadata-overlay {
+            display: none;
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.9);
+            justify-content: center; align-items: center; flex-direction: column;
+            padding: 30px; box-sizing: border-box; text-align: center;
+        }
+        .meta-box { background: #222; padding: 20px; border-left: 5px solid #f1c40f; max-width: 500px; }
     </style>
 </head>
 <body>
 
-<div class="game-container">
-    <h1>🌲 糖果屋保存計畫</h1>
-    <h2>Hansel & Gretel's Data Preservation</h2>
+    <h1>🌲 位元腐敗迷宮</h1>
+    <p class="subtitle">任務：前往紅色糖果屋並活著回來</p>
 
-    <div id="stage-select">
-        <div class="icon-large">🎒</div>
-        <p>父親要把你們帶到森林深處。為了能夠找回家的路（檢索路徑），你必須選擇一種「紀錄載體」丟在沿路上：</p>
-        <div class="btn-group">
-            <button class="btn-stone" onclick="chooseMedium('stone')">🪨 白色石頭 (Stone)</button>
-            <button class="btn-bread" onclick="chooseMedium('bread')">🍞 麵包屑 (Bread)</button>
-        </div>
+    <div class="status-bar">
+        <div class="stat-item stone-count">🪨 石頭: <span id="stone-val">3</span></div>
+        <div class="stat-item bread-count">🍞 麵包: <span id="bread-val">10</span></div>
     </div>
 
-    <div id="stage-forest" class="hidden">
-        <div class="icon-large">🌲🌑🌲</div>
-        <p id="forest-status">正在嘗試讀取路徑資料...</p>
-    </div>
-
-    <div id="stage-result" class="hidden">
-        <div class="icon-large" id="result-icon"></div>
-        <h2 id="result-title" style="color: white; font-size: 1.5rem;"></h2>
-        <p id="result-desc"></p>
-        
-        <div class="library-note">
-            <strong>【圖書資訊學觀點：資料保存】</strong><br>
-            <span id="lib-concept"></span>
+    <div class="grid-container" id="grid">
         </div>
 
-        <button class="btn-reset" onclick="location.reload()">🔄 重新實驗</button>
+    <div class="controls">
+        <p style="font-size: 0.9rem; color: #aaa;">點擊相鄰格子移動，系統會自動放置標記</p>
+        <div id="toggle-container">
+            目前使用：<strong id="current-tool" style="color: #e67e22;">🍞 麵包屑</strong><br>
+            <button class="btn-action btn-stone" onclick="setTool('stone')">切換用石頭 (永久)</button>
+            <button class="btn-action btn-bread" onclick="setTool('bread')">切換用麵包 (易逝)</button>
+        </div>
+        <button class="btn-action btn-reset" onclick="location.reload()" id="btn-restart">再試一次</button>
     </div>
-</div>
+
+    <div class="log-box" id="game-log">
+        > 系統啟動...<br>
+        > 數位保存實驗開始。<br>
+        > 警告：森林中的生物正在破壞資料連結...
+    </div>
+
+    <div id="end-screen" class="metadata-overlay">
+        <div class="meta-box">
+            <h2 id="end-title"></h2>
+            <p id="end-desc"></p>
+            <hr style="border-color: #444; margin: 15px 0;">
+            <p style="font-size: 0.9rem; color: #aaa; text-align: left;">
+                <strong>【圖書資訊學觀念：Bit Rot】</strong><br>
+                位元腐敗（Bit Rot）是指數位資料儲存媒體隨著時間推移，因物理衰變或格式過時而導致的資料損壞。就像麵包屑被鳥吃掉一樣，沒有妥善備份（Migration/Emulation）的數位檔案，最終將無法讀取。
+            </p>
+            <button class="btn-action btn-bread" onclick="location.reload()">重新實驗</button>
+        </div>
+    </div>
 
 <script>
-    function chooseMedium(type) {
-        // 切換到森林畫面
-        document.getElementById('stage-select').classList.add('hidden');
-        document.getElementById('stage-forest').classList.remove('hidden');
+    // --- 遊戲設定 ---
+    const gridSize = 5;
+    let playerPos = { x: 0, y: 0 };
+    let goalPos = { x: 4, y: 4 }; // 糖果屋位置
+    let hasReachedGoal = false;
+    let stones = 3;
+    let breads = 10;
+    let currentTool = 'bread'; // 'bread' or 'stone'
+    let gridData = []; // 儲存每一格的狀態
+    let rotInterval;
 
-        setTimeout(() => {
-            showResult(type);
-        }, 2000); // 模擬 2 秒運算
+    const logBox = document.getElementById('game-log');
+    
+    // 初始化遊戲
+    function initGame() {
+        const gridEl = document.getElementById('grid');
+        gridEl.innerHTML = '';
+        gridData = [];
+
+        for (let y = 0; y < gridSize; y++) {
+            let row = [];
+            for (let x = 0; x < gridSize; x++) {
+                let cell = document.createElement('div');
+                cell.className = 'cell fog';
+                cell.dataset.x = x;
+                cell.dataset.y = y;
+                cell.onclick = () => movePlayer(x, y);
+                
+                gridEl.appendChild(cell);
+                
+                // 資料結構
+                row.push({
+                    el: cell,
+                    visited: false,
+                    content: null // 'bread', 'stone', 'start', 'goal'
+                });
+            }
+            gridData.push(row);
+        }
+
+        // 設定起點與終點
+        gridData[0][0].content = 'start';
+        gridData[0][0].visited = true;
+        gridData[4][4].content = 'goal';
+
+        updateView();
+        
+        // 啟動位元腐敗機制 (每 2.5 秒隨機吃掉一個麵包)
+        rotInterval = setInterval(bitRot, 2500);
     }
 
-    function showResult(type) {
-        document.getElementById('stage-forest').classList.add('hidden');
-        document.getElementById('stage-result').classList.remove('hidden');
+    // 處理移動
+    function movePlayer(x, y) {
+        // 檢查是否相鄰
+        const dx = Math.abs(x - playerPos.x);
+        const dy = Math.abs(y - playerPos.y);
+        if (dx + dy !== 1) return; // 只能走一步
 
-        const icon = document.getElementById('result-icon');
-        const title = document.getElementById('result-title');
-        const desc = document.getElementById('result-desc');
-        const concept = document.getElementById('lib-concept');
+        // 檢查資源
+        if (currentTool === 'stone' && stones <= 0 && !gridData[y][x].visited) {
+            log("❌ 石頭用完了！只能用麵包。");
+            return;
+        }
+        if (currentTool === 'bread' && breads <= 0 && !gridData[y][x].visited) {
+            log("❌ 麵包用完了！資料載體不足。");
+            return;
+        }
 
-        if (type === 'stone') {
-            // 成功結局
-            icon.innerText = "🏠";
-            title.innerText = "資料檢索成功：安全回家";
-            desc.innerText = "月光照射下，白色的石頭閃閃發光。路徑資料完整無缺，兄妹倆順利讀取路徑，回到了家。";
-            concept.innerHTML = "<strong>永久性載體 (Permanent Media)：</strong><br>石頭象徵高品質的保存介質（如無酸紙、M-Disc）。具有抗環境干擾（鳥類啄食/物理損壞）的能力，確保資訊在未來仍可被取用 (Accessibility)。";
+        // 放置標記 (如果這格沒走過)
+        if (!gridData[y][x].visited) {
+            if (currentTool === 'stone') {
+                stones--;
+                gridData[y][x].content = 'stone';
+                log(`放置了 [永久載體:石頭]。剩餘: ${stones}`);
+            } else {
+                breads--;
+                gridData[y][x].content = 'bread';
+                log(`放置了 [易逝載體:麵包]。剩餘: ${breads}`);
+            }
+            gridData[y][x].visited = true;
         } else {
-            // 失敗結局
-            icon.innerText = "🧙‍♀️🍪";
-            title.innerText = "資料遺失 (Data Loss)：誤入糖果屋";
-            desc.innerText = "麵包屑不見了！被森林裡的鳥吃光了。路徑資料損毀，你們迷路並發現了一棟奇怪的糖果屋...";
-            concept.innerHTML = "<strong>載體劣化 (Media Deterioration)：</strong><br>麵包象徵脆弱的儲存介質（如早期的磁片、酸性紙）。容易受到環境生物（鳥/蟲）破壞，導致資訊流失 (Bit Rot)，使得原始路徑無法復原。";
+            // 如果走回頭路
+            log("回溯已知的路徑...");
+        }
+
+        // 更新位置
+        playerPos = { x, y };
+        updateUI();
+        updateView();
+
+        // 檢查事件
+        checkEvents(x, y);
+    }
+
+    // 更新畫面 (處理迷霧與圖示)
+    function updateView() {
+        for (let y = 0; y < gridSize; y++) {
+            for (let x = 0; x < gridSize; x++) {
+                const cellData = gridData[y][x];
+                const el = cellData.el;
+                
+                // 清除舊 class
+                el.className = 'cell';
+                el.innerText = '';
+
+                // 處理迷霧 (只顯示周圍 1 格)
+                const dist = Math.abs(x - playerPos.x) + Math.abs(y - playerPos.y);
+                if (dist > 1 && !cellData.visited) {
+                    el.classList.add('fog');
+                }
+
+                // 顯示內容
+                if (x === playerPos.x && y === playerPos.y) {
+                    el.classList.add('player');
+                    el.innerText = '🧒';
+                } else if (x === goalPos.x && y === goalPos.y) {
+                    el.classList.add('house');
+                    el.innerText = '🏠';
+                } else if (x === 0 && y === 0) {
+                    el.classList.add('start');
+                    el.innerText = '🚩';
+                } else if (cellData.content === 'stone') {
+                    el.classList.add('path-stone');
+                    el.innerText = '🪨';
+                } else if (cellData.content === 'bread') {
+                    el.classList.add('path-bread');
+                    el.innerText = '🍞';
+                }
+            }
         }
     }
+
+    // 檢查勝利/目標條件
+    function checkEvents(x, y) {
+        // 到達糖果屋
+        if (x === 4 && y === 4 && !hasReachedGoal) {
+            hasReachedGoal = true;
+            goalPos = { x: 0, y: 0 }; // 目標變回起點
+            log("🎉 發現糖果屋！快依照路徑逃回家！");
+            document.querySelector('.subtitle').innerText = "任務更新：依照標記逃回起點 (0,0)";
+            document.querySelector('.subtitle').style.color = "#e74c3c";
+        }
+
+        // 回到起點 (勝利)
+        if (x === 0 && y === 0 && hasReachedGoal) {
+            endGame(true);
+        }
+    }
+
+    // 位元腐敗機制 (最核心的圖資隱喻)
+    function bitRot() {
+        let breadCells = [];
+        // 找出所有放麵包的格子
+        for (let y = 0; y < gridSize; y++) {
+            for (let x = 0; x < gridSize; x++) {
+                if (gridData[y][x].content === 'bread') {
+                    breadCells.push(gridData[y][x]);
+                }
+            }
+        }
+
+        // 隨機移除一個
+        if (breadCells.length > 0) {
+            const randomIndex = Math.floor(Math.random() * breadCells.length);
+            const target = breadCells[randomIndex];
+            target.content = null; // 資料遺失
+            
+            // 視覺特效
+            target.el.innerText = '⚠️';
+            setTimeout(() => updateView(), 500);
+            
+            log("⚠️ 警告：一個資料區塊(麵包)發生 Bit Rot 損毀！");
+        }
+    }
+
+    // 遊戲結束
+    function endGame(win) {
+        clearInterval(rotInterval);
+        const screen = document.getElementById('end-screen');
+        const title = document.getElementById('end-title');
+        const desc = document.getElementById('end-desc');
+
+        screen.style.display = 'flex';
+
+        if (win) {
+            title.innerText = "✅ 數位典藏成功";
+            title.style.color = "#2ecc71";
+            desc.innerText = "你成功利用殘存的檢索點（Metadata）找回了路徑。儘管部分資料流失，但關鍵的永久載體（石頭）發揮了作用。";
+        } else {
+            // 這個通常是透過按重置，或是未來可以加陷阱
+        }
+    }
+
+    // 工具函式
+    function setTool(tool) {
+        currentTool = tool;
+        document.getElementById('current-tool').innerText = tool === 'stone' ? '🪨 石頭 (永久)' : '🍞 麵包 (易逝)';
+        document.getElementById('current-tool').style.color = tool === 'stone' ? '#95a5a6' : '#e67e22';
+    }
+
+    function updateUI() {
+        document.getElementById('stone-val').innerText = stones;
+        document.getElementById('bread-val').innerText = breads;
+    }
+
+    function log(msg) {
+        logBox.innerHTML += `> ${msg}<br>`;
+        logBox.scrollTop = logBox.scrollHeight;
+    }
+
+    // 啟動
+    initGame();
+
 </script>
 </body>
 </html>
