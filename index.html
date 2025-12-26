@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>數位人文童話實驗室 | Digital Humanities Fairy Tales</title>
+    <style>
+        body {
+            font-family: "Microsoft JhengHei", "Heiti TC", sans-serif;
+            background-color: #f3f4f6;
+            margin: 0;
+            padding: 40px 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            color: #333;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 50px;
+            max-width: 800px;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            color: #2c3e50;
+            margin-bottom: 10px;
+            letter-spacing: 1px;
+        }
+
+        p.subtitle {
+            color: #7f8c8d;
+            font-size: 1.2rem;
+            line-height: 1.6;
+        }
+
+        /* 卡片容器設計 (RWD 自適應) */
+        .gallery {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+            width: 100%;
+            max-width: 1000px;
+        }
+
+        /* 卡片本體 */
+        .card {
+            background: white;
+            border-radius: 16px;
+            padding: 30px;
+            text-decoration: none; /* 去除連結底線 */
+            color: inherit;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            border: 1px solid #eee;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 12px 24px rgba(0,0,0,0.15);
+            border-color: transparent;
+        }
+
+        /* 裝飾線條 (上方彩色條) */
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 6px;
+        }
+
+        .pig-card::before { background: linear-gradient(to right, #e74c3c, #c0392b); }
+        .candy-card::before { background: linear-gradient(to right, #f1c40f, #f39c12); }
+        .red-card::before { background: linear-gradient(to right, #e84393, #d63031); }
+
+        .icon {
+            font-size: 4rem;
+            margin-bottom: 20px;
+        }
+
+        h2 {
+            margin: 10px 0;
+            font-size: 1.4rem;
+            color: #2c3e50;
+        }
+
+        p.desc {
+            font-size: 0.95rem;
+            color: #666;
+            line-height: 1.6;
+        }
+
+        .tag {
+            margin-top: auto; /* 將標籤推到底部 */
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            margin-top: 20px;
+            background-color: #ecf0f1;
+            color: #7f8c8d;
+        }
+
+        footer {
+            margin-top: 60px;
+            font-size: 0.9rem;
+            color: #bdc3c7;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>📖 數位人文童話實驗室</h1>
+        <p class="subtitle">Digital Humanities Project<br>結合圖書資訊學觀點的互動敘事實驗</p>
+    </header>
+
+    <div class="gallery">
+        <a href="three-pig.html" class="card pig-card">
+            <span class="icon">🐷</span>
+            <h2>三隻小豬</h2>
+            <p class="desc">透過建築材質與結局選擇，探討民間故事的版本流變與價值觀差異。</p>
+            <span class="tag">文本流變 Textual Variation</span>
+        </a>
+
+        <a href="candy.html" class="card candy-card">
+            <span class="icon">🍬</span>
+            <h2>糖果屋</h2>
+            <p class="desc">以石頭與麵包屑為隱喻，模擬資訊載體的永久性保存與資料遺失風險。</p>
+            <span class="tag">數位保存 Digital Preservation</span>
+        </a>
+
+        <a href="red.html" class="card red-card">
+            <span class="icon">🐺</span>
+            <h2>小紅帽</h2>
+            <p class="desc">模擬通訊軟體對話，透過提問與查證，辨識網路身分詐欺與假訊息。</p>
+            <span class="tag">資訊素養 Information Literacy</span>
+        </a>
+    </div>
+
+    <footer>
+        Designed by QAQ-OVO-QAQ | Department of Library and Information Science
+    </footer>
+
+</body>
+</html>
