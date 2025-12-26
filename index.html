@@ -36,7 +36,7 @@
             line-height: 1.6;
         }
 
-        /* 卡片容器設計 (RWD 自適應) */
+        /* 卡片容器設計 */
         .gallery {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
@@ -79,9 +79,9 @@
             height: 6px;
         }
 
-        .pig-card::before { background: linear-gradient(to right, #e74c3c, #c0392b); }
-        .candy-card::before { background: linear-gradient(to right, #f1c40f, #f39c12); }
-        .red-card::before { background: linear-gradient(to right, #e84393, #d63031); }
+        .pig-card::before { background: linear-gradient(to right, #2ecc71, #27ae60); } /* 綠色：防禦/檢索 */
+        .candy-card::before { background: linear-gradient(to right, #f1c40f, #e67e22); } /* 黃色：警示/安全 */
+        .red-card::before { background: linear-gradient(to right, #e74c3c, #c0392b); } /* 紅色：偵測/危機 */
 
         .icon {
             font-size: 4rem;
@@ -128,24 +128,24 @@
 
     <div class="gallery">
         <a href="three-pig.html" class="card pig-card">
-            <span class="icon">🐷</span>
-            <h2>三隻小豬</h2>
-            <p class="desc">透過建築材質與結局選擇，探討民間故事的版本流變與價值觀差異。</p>
-            <span class="tag">文本流變 Textual Variation</span>
+            <span class="icon">🃏</span>
+            <h2>三隻小豬：知識防禦戰</h2>
+            <p class="desc">結合「精確率」概念的卡牌對戰。針對大野狼的攻擊（查詢），精準檢索手牌資源進行防禦，在十回合內守護家園。</p>
+            <span class="tag">資訊檢索 Information Retrieval</span>
         </a>
 
         <a href="candy.html" class="card candy-card">
-            <span class="icon">🍬</span>
-            <h2>糖果屋</h2>
-            <p class="desc">以石頭與麵包屑為隱喻，模擬資訊載體的永久性保存與資料遺失風險。</p>
-            <span class="tag">數位保存 Digital Preservation</span>
+            <span class="icon">🗝️</span>
+            <h2>葛麗特的逆襲</h2>
+            <p class="desc">多重結局的解謎冒險。模擬資訊安全中的「異常行為偵測」與「社交工程」，在女巫的監控下尋找系統漏洞以逃脫。</p>
+            <span class="tag">資訊安全 Information Security</span>
         </a>
 
         <a href="red.html" class="card red-card">
-            <span class="icon">🐺</span>
-            <h2>小紅帽</h2>
-            <p class="desc">模擬通訊軟體對話，透過提問與查證，辨識網路身分詐欺與假訊息。</p>
-            <span class="tag">資訊素養 Information Literacy</span>
+            <span class="icon">📉</span>
+            <h2>小紅帽：深偽偵測</h2>
+            <p class="desc">聲音訊號分析實驗。透過波形監測與謊言偵測機制，辨識由 Deepfake 技術偽造的語音，探討訊號與雜訊的判讀。</p>
+            <span class="tag">訊號偵測 Signal Detection</span>
         </a>
     </div>
 
