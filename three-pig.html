@@ -14,80 +14,165 @@
             align-items: center;
             min-height: 100vh;
             margin: 0;
-            overflow: hidden;
+            padding: 20px;
+            box-sizing: border-box;
             user-select: none;
         }
 
-        /* 遊戲說明文字 */
         .subtitle {
             color: #bdc3c7;
             font-size: 1rem;
-            margin-top: 5px;
             margin-bottom: 20px;
             background: rgba(0,0,0,0.2);
             padding: 5px 15px;
             border-radius: 20px;
         }
 
-        /* 戰場區域 */
+        /* 主容器 */
+        .main-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 30px;
+            justify-content: center;
+            width: 100%;
+            max-width: 1000px;
+            align-items: flex-start;
+        }
+
+        /* 左側：戰術指南 */
+        .guide-panel {
+            background: rgba(0, 0, 0, 0.4);
+            padding: 20px;
+            border-radius: 15px;
+            border: 2px solid #7f8c8d;
+            width: 250px;
+            flex-shrink: 0;
+        }
+
+        .guide-title {
+            color: #f1c40f;
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-bottom: 15px;
+            text-align: center;
+            border-bottom: 2px solid #555;
+            padding-bottom: 10px;
+        }
+
+        .guide-row {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+            font-size: 0.9rem;
+            background: rgba(255,255,255,0.05);
+            padding: 8px;
+            border-radius: 8px;
+        }
+
+        .guide-wolf { font-size: 1.5rem; margin-right: 10px; width: 40px; text-align: center; }
+        .guide-arrow { color: #aaa; margin: 0 10px; font-weight: bold; }
+        .guide-cards { display: flex; gap: 5px; flex-wrap: wrap; flex: 1; }
+        .mini-card { 
+            font-size: 0.8rem; padding: 2px 6px; 
+            border-radius: 4px; border: 1px solid #aaa;
+            background: #fff; color: #333; 
+        }
+
+        /* 右側：戰場區域 */
         .battlefield {
-            width: 100%; max-width: 600px;
             flex-grow: 1;
+            max-width: 600px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 20px;
+            padding: 20px;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
-            padding: 20px;
-            box-sizing: border-box;
+            min-height: 550px; /*稍微加高以容納按鈕*/
         }
 
-        /* 大野狼區 (敵方) */
-        .wolf-area { text-align: center; position: relative; }
+        /* 大野狼區 */
+        .wolf-area { text-align: center; position: relative; margin-bottom: 20px; }
         .wolf-avatar { font-size: 6rem; transition: transform 0.2s; display: inline-block; }
         .wolf-intent { 
-            background: #c0392b; color: white; padding: 5px 15px; border-radius: 20px; 
-            font-size: 0.9rem; margin-top: 10px; display: inline-block; font-weight: bold;
-            box-shadow: 0 0 10px #e74c3c;
+            background: #c0392b; color: white; padding: 8px 20px; border-radius: 20px; 
+            font-size: 1rem; margin-top: 10px; display: inline-block; font-weight: bold;
+            box-shadow: 0 0 15px #e74c3c;
+            border: 2px solid #fff;
         }
         
-        /* 房子狀態 (我方 HP) */
+        /* 房子狀態 */
         .house-status { 
             text-align: center; margin: 20px 0; 
-            background: rgba(0,0,0,0.3); padding: 10px; border-radius: 10px;
+            background: rgba(0,0,0,0.3); padding: 15px; border-radius: 10px;
         }
-        .hp-bar-bg { width: 100%; height: 20px; background: #555; border-radius: 10px; overflow: hidden; margin-top: 5px; }
+        .hp-bar-bg { width: 100%; height: 25px; background: #555; border-radius: 15px; overflow: hidden; margin-top: 5px; border: 2px solid #444; }
         .hp-bar-fill { height: 100%; background: #2ecc71; width: 100%; transition: width 0.3s; }
 
-        /* 卡牌區 (手牌) */
+        /* 操作區 (重抽按鈕與提示) */
+        .action-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: auto;
+            margin-bottom: 10px;
+            padding: 0 10px;
+        }
+
+        .redraw-btn {
+            background: #8e44ad;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+            box-shadow: 0 4px 0 #5e2d73;
+        }
+
+        .redraw-btn:hover { background: #9b59b6; transform: translateY(-2px); box-shadow: 0 6px 0 #5e2d73; }
+        .redraw-btn:active { transform: translateY(2px); box-shadow: 0 0 0; }
+        .redraw-btn:disabled { 
+            background: #555; color: #888; cursor: not-allowed; 
+            box-shadow: none; transform: none;
+        }
+
+        /* 卡牌區 */
         .hand-area {
-            display: flex; justify-content: center; gap: 15px; margin-bottom: 20px;
+            display: flex; justify-content: center; gap: 15px; 
         }
 
         .card {
-            width: 100px; height: 140px;
+            width: 110px; height: 160px;
             background: #ecf0f1; color: #2c3e50;
-            border-radius: 10px;
+            border-radius: 12px;
             display: flex; flex-direction: column; align-items: center; justify-content: center;
             cursor: pointer;
             transition: transform 0.2s, box-shadow 0.2s;
             border: 4px solid #bdc3c7;
             position: relative;
+            text-align: center;
+            padding: 5px;
         }
 
-        .card:hover { transform: translateY(-20px); box-shadow: 0 0 20px rgba(255,255,255,0.5); border-color: #f1c40f; }
+        .card:hover { transform: translateY(-20px); box-shadow: 0 0 25px rgba(255,255,255,0.6); border-color: #f1c40f; z-index: 10; }
         
-        .card-icon { font-size: 3rem; margin-bottom: 5px; }
-        .card-name { font-weight: bold; font-size: 1rem; }
-        .card-type { font-size: 0.7rem; color: #7f8c8d; margin-top: 5px; }
+        .card-icon { font-size: 3.5rem; margin-bottom: 5px; }
+        .card-name { font-weight: bold; font-size: 1.1rem; margin-bottom: 5px;}
+        .card-desc { font-size: 0.75rem; color: #555; line-height: 1.3; background: rgba(0,0,0,0.05); padding: 4px; border-radius: 4px; width: 90%; }
 
         /* 卡牌類型顏色 */
-        .type-def { border-color: #3498db; } /* 防禦卡 */
-        .type-atk { border-color: #e67e22; } /* 反擊卡 */
-        .type-heal { border-color: #27ae60; } /* 回復卡 */
+        .type-def { border-color: #3498db; }
+        .type-atk { border-color: #e67e22; }
+        .type-heal { border-color: #27ae60; }
 
         /* 戰鬥訊息 */
         .log-display {
-            height: 40px; text-align: center; color: #f1c40f; font-weight: bold; font-size: 1.2rem;
-            text-shadow: 1px 1px 2px black; margin-bottom: 10px;
+            min-height: 50px; text-align: center; color: #f1c40f; font-weight: bold; font-size: 1.3rem;
+            text-shadow: 1px 1px 2px black; margin: 15px 0;
+            display: flex; align-items: center; justify-content: center;
         }
 
         /* 結局遮罩 */
@@ -96,6 +181,16 @@
             background: rgba(0,0,0,0.95); z-index: 100;
             display: none; flex-direction: column; justify-content: center; align-items: center;
             text-align: center; color: white; padding: 20px;
+        }
+
+        /* RWD */
+        @media (max-width: 768px) {
+            .main-container { flex-direction: column; align-items: center; }
+            .guide-panel { width: 90%; margin-bottom: 10px; }
+            .wolf-avatar { font-size: 4rem; }
+            .card { width: 90px; height: 130px; }
+            .card-icon { font-size: 2.5rem; }
+            .action-bar { margin-bottom: 15px; }
         }
 
         /* 動畫 */
@@ -111,28 +206,71 @@
 
     <p class="subtitle">請在大野狼的攻擊底下撐過十回合</p>
 
-    <div class="battlefield">
-        <div class="wolf-area">
-            <div id="wolf" class="wolf-avatar">🐺</div>
-            <br>
-            <div class="wolf-intent" id="intent-display">正在觀察房子...</div>
+    <div class="main-container">
+        
+        <div class="guide-panel">
+            <div class="guide-title">📚 戰術指南 (Cheatsheet)</div>
+            
+            <div class="guide-row">
+                <div class="guide-wolf" title="吹氣">💨</div>
+                <div class="guide-arrow">剋星 ➔</div>
+                <div class="guide-cards">
+                    <span class="mini-card">🧱 磚塊</span>
+                    <span class="mini-card">🪵 木頭</span>
+                </div>
+            </div>
+
+            <div class="guide-row">
+                <div class="guide-wolf" title="撞擊">🐗</div>
+                <div class="guide-arrow">剋星 ➔</div>
+                <div class="guide-cards">
+                    <span class="mini-card">⚙️ 捕獸夾</span>
+                    <span class="mini-card">🧱 磚塊</span>
+                </div>
+            </div>
+
+            <div class="guide-row">
+                <div class="guide-wolf" title="爬煙囪">🪜</div>
+                <div class="guide-arrow">剋星 ➔</div>
+                <div class="guide-cards">
+                    <span class="mini-card">🔥 煮熱水</span>
+                </div>
+            </div>
+
+            <div style="font-size:0.8rem; color:#aaa; margin-top:10px; text-align:center;">
+                🔨 <strong>加固</strong>：不論攻擊類型，皆可回復 HP
+            </div>
         </div>
 
-        <div class="log-display" id="log">回合開始！</div>
+        <div class="battlefield">
+            <div class="wolf-area">
+                <div id="wolf" class="wolf-avatar">🐺</div>
+                <br>
+                <div class="wolf-intent" id="intent-display">正在觀察房子...</div>
+            </div>
 
-        <div class="house-status">
-            <div style="display:flex; justify-content:space-between;">
-                <span>🏠 房屋結構 (HP)</span>
-                <span id="hp-text">100/100</span>
+            <div class="log-display" id="log">回合開始！</div>
+
+            <div class="house-status">
+                <div style="display:flex; justify-content:space-between;">
+                    <span>🏠 房屋結構 (HP)</span>
+                    <span id="hp-text">100/100</span>
+                </div>
+                <div class="hp-bar-bg">
+                    <div class="hp-bar-fill" id="hp-bar"></div>
+                </div>
             </div>
-            <div class="hp-bar-bg">
-                <div class="hp-bar-fill" id="hp-bar"></div>
+
+            <div class="action-bar">
+                <div style="font-size:0.9rem; color:#aaa;">請選擇一張卡牌</div>
+                <button id="redraw-btn" class="redraw-btn" onclick="redrawHand()">
+                    🔄 重新抽牌 (3)
+                </button>
             </div>
+
+            <div class="hand-area" id="hand">
+                </div>
         </div>
-
-        <div style="text-align:center; font-size:0.9rem; color:#aaa; margin-bottom:5px;">請選擇一張卡牌來應對</div>
-        <div class="hand-area" id="hand">
-            </div>
     </div>
 
     <div id="overlay" class="overlay">
@@ -151,14 +289,15 @@
     const maxHp = 100;
     let turn = 1;
     let wolfMove = null;
+    let redrawsLeft = 3; // 剩餘重抽次數
 
     // 卡牌資料庫
     const cardDB = [
-        { id: 'brick', name: '磚塊牆', type: 'def', icon: '🧱', desc: '抵擋吹氣' },
-        { id: 'wood', name: '木板擋', type: 'def', icon: '🪵', desc: '稍微抵擋' },
-        { id: 'water', name: '煮熱水', type: 'atk', icon: '🔥', desc: '反制爬煙囪' },
-        { id: 'trap', name: '捕獸夾', type: 'atk', icon: '⚙️', desc: '反制撞擊' },
-        { id: 'repair', name: '加固', type: 'heal', icon: '🔨', desc: '回復 +20 HP' }
+        { id: 'brick', name: '磚塊牆', type: 'def', icon: '🧱', desc: '防禦：吹氣、撞擊' },
+        { id: 'wood', name: '木板擋', type: 'def', icon: '🪵', desc: '防禦：吹氣' },
+        { id: 'water', name: '煮熱水', type: 'atk', icon: '🔥', desc: '反制：爬煙囪' },
+        { id: 'trap', name: '捕獸夾', type: 'atk', icon: '⚙️', desc: '反制：撞擊' },
+        { id: 'repair', name: '加固', type: 'heal', icon: '🔨', desc: '緊急修復 +20 HP' }
     ];
 
     // 大野狼攻擊模式
@@ -179,14 +318,21 @@
         document.getElementById('intent-display').innerText = `準備：${wolfMove.name} (傷害 ${wolfMove.dmg})`;
         document.getElementById('log').innerText = `第 ${turn} 回合：大野狼準備進攻！`;
 
-        // 2. 發牌 (隨機 3 張)
+        // 2. 更新重抽按鈕狀態
+        updateRedrawBtn();
+
+        // 3. 發牌
+        drawCards();
+    }
+
+    // 獨立出來的發牌函式，供下一回合和重抽使用
+    function drawCards() {
         const handEl = document.getElementById('hand');
         handEl.innerHTML = '';
         for(let i=0; i<3; i++) {
             const cardData = cardDB[Math.floor(Math.random() * cardDB.length)];
             const card = document.createElement('div');
             
-            // 設定樣式類別
             let typeClass = '';
             if(cardData.type === 'def') typeClass = 'type-def';
             if(cardData.type === 'atk') typeClass = 'type-atk';
@@ -196,73 +342,89 @@
             card.innerHTML = `
                 <div class="card-icon">${cardData.icon}</div>
                 <div class="card-name">${cardData.name}</div>
-                <div class="card-type">${cardData.desc}</div>
+                <div class="card-desc">${cardData.desc}</div>
             `;
             card.onclick = () => playCard(cardData);
             handEl.appendChild(card);
         }
     }
 
+    // 重新抽牌功能
+    function redrawHand() {
+        if (redrawsLeft <= 0) return;
+        
+        redrawsLeft--;
+        drawCards(); // 換新牌，但大野狼意圖(wolfMove)不變
+        updateRedrawBtn();
+        
+        // 播放一點音效或文字提示
+        document.getElementById('log').innerText = "🔄 已重新調度手牌！";
+    }
+
+    function updateRedrawBtn() {
+        const btn = document.getElementById('redraw-btn');
+        btn.innerText = `🔄 重新抽牌 (${redrawsLeft})`;
+        btn.disabled = false; // 預設開啟
+
+        if (redrawsLeft <= 0) {
+            btn.disabled = true;
+            btn.style.opacity = 0.5;
+        }
+    }
+
     function playCard(card) {
         document.getElementById('hand').innerHTML = ''; // 清空手牌
+        document.getElementById('redraw-btn').disabled = true; // 播放動畫時鎖住按鈕
         
         let damage = wolfMove.dmg;
         let healAmount = 0;
         let msg = "";
-        let blocked = false;
 
-        // --- 判定邏輯修正 (先判定數值，最後再一次計算) ---
-        
-        // 1. 回復卡：設定回復量，但不歸零傷害 (硬扛傷害同時修補)
+        // --- 判定邏輯 ---
         if (card.type === 'heal') {
             healAmount = 20;
             msg = `使用了 ${card.name}，房屋修復中...`;
         }
-        // 2. 完美防禦/反擊 (卡牌 ID 在大野狼的 counter 列表裡)
         else if (wolfMove.counter.includes(card.id)) {
             damage = 0;
-            blocked = true;
-            msg = `完美防禦！${card.name} 成功擋下了 ${wolfMove.name}！`;
+            msg = `防禦成功！${card.name} 擋下了 ${wolfMove.name}！`;
             
-            // 反擊特效
             document.getElementById('wolf').classList.add('shake');
             setTimeout(()=>document.getElementById('wolf').classList.remove('shake'), 500);
         }
-        // 3. 屬性錯誤 (無效策略)
         else {
-            msg = `無效策略！${card.name} 擋不住 ${wolfMove.name}！`;
+            msg = `無效！${card.name} 擋不住 ${wolfMove.name}！`;
         }
 
-        // --- 數值結算 (核心修正：先扣血再補血，確保不會先頂到100被吃掉) ---
-        hp = hp - damage + healAmount;
-        
-        // 如果超過上限，切回 100
-        if (hp > maxHp) hp = maxHp;
+        // --- 數值結算 ---
+        let newHp = hp - damage + healAmount;
+        if (newHp > maxHp) newHp = maxHp;
+        hp = newHp;
 
-        // 更新特效與訊息
         if (damage > 0) {
             document.getElementById('wolf').classList.add('attack-anim');
             setTimeout(()=>document.getElementById('wolf').classList.remove('attack-anim'), 300);
             document.body.classList.add('shake');
             setTimeout(()=>document.body.classList.remove('shake'), 500);
             
-            // 補充訊息：如果有補血，顯示淨變化
             if (healAmount > 0) {
-                let netChange = healAmount - damage;
-                msg += ` (受到 ${damage} 傷害，回復 ${healAmount})`; 
+                msg += ` (傷害 -${damage}, 回復 +${healAmount})`; 
             } else {
-                msg += ` 房屋受到了 ${damage} 點傷害！`;
+                msg += ` 房屋損毀 -${damage} HP！`;
             }
+        } else if (damage === 0 && healAmount === 0) {
+             msg += ` (傷害 0)`;
+        } else if (healAmount > 0) {
+            msg += ` (回復 +${healAmount})`;
         }
 
-        // 更新 UI
         document.getElementById('log').innerText = msg;
         updateHpUI();
 
         // 檢查生死
         if (hp <= 0) {
             setTimeout(() => endGame(false), 1000);
-        } else if (turn >= 10) { // 撐過 10 回合獲勝
+        } else if (turn >= 10) { 
             setTimeout(() => endGame(true), 1000);
         } else {
             turn++;
@@ -291,12 +453,12 @@
             title.innerText = "🏆 防禦成功";
             title.style.color = "#f1c40f";
             desc.innerText = "經過 10 回合的攻防，大野狼精疲力盡地離開了。";
-            note.innerText = "【精確率 (Precision)】：您展現了完美的資訊檢索能力。針對使用者的每一個「查詢（大野狼的攻擊）」，您都能在館藏中找到最相關（Relevant）的「資源（卡牌）」來回應，排除了不相關的雜訊。";
+            note.innerText = "【精確率 (Precision)】：您展現了完美的資訊檢索能力。針對每一個「查詢（攻擊）」，您都能檢索到最相關（Relevant）的「資源（卡牌）」，成功滿足了系統需求。";
         } else {
             title.innerText = "🏚️ 房屋倒塌";
             title.style.color = "#e74c3c";
             desc.innerText = "你的檢索策略失敗，房屋結構被破壞殆盡。";
-            note.innerText = "【檢索失敗 (Retrieval Failure)】：面對使用者的查詢需求（攻擊），系統未能提供正確的對應資源（卡牌）。可能是因為館藏資源不足（手牌運氣差），或是索引對應錯誤（打錯卡牌）。";
+            note.innerText = "【檢索失敗 (Retrieval Failure)】：面對使用者的查詢需求（攻擊），系統未能提供正確的對應資源（卡牌）。可能是因為館藏資源不足（手牌運氣差），或是索引對應錯誤（誤用卡牌）。";
         }
     }
 
