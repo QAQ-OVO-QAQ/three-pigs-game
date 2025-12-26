@@ -3,390 +3,168 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>小紅帽：深偽偵測協定</title>
+    <title>小紅帽：資訊查核模擬器</title>
     <style>
-        body {
-            font-family: "Courier New", monospace;
-            background-color: #0d0d0d;
-            color: #0f0;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            min-height: 100vh;
-            margin: 0;
-            overflow-x: hidden; /* 防止水平卷軸 */
-        }
-
-        /* 復古 CRT 螢幕效果 */
-        .screen-container {
-            width: 90%;
-            max-width: 600px;
-            border: 2px solid #333;
-            background: #001a00;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 0 20px rgba(0, 255, 0, 0.2);
-            position: relative;
-        }
+        body { font-family: "Microsoft JhengHei", sans-serif; background-color: #ece5dd; display: flex; justify-content: center; height: 100vh; margin: 0; }
+        .phone-frame { width: 100%; max-width: 400px; background: #fff; height: 100vh; display: flex; flex-direction: column; box-shadow: 0 0 20px rgba(0,0,0,0.1); }
         
-        /* 掃描線特效 */
-        .screen-container::before {
-            content: " ";
-            display: block;
-            position: absolute;
-            top: 0; left: 0; bottom: 0; right: 0;
-            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
-            z-index: 2;
-            background-size: 100% 2px, 3px 100%;
-            pointer-events: none;
-        }
-
-        h1 { margin: 0 0 20px 0; font-size: 1.2rem; text-shadow: 0 0 5px #0f0; }
+        /* 頂部導覽列 */
+        .chat-header { background-color: #2c3e50; color: white; padding: 15px; text-align: center; font-weight: bold; font-size: 1.1rem; }
         
-        /* 對話區 */
-        .dialogue-box {
-            height: 150px;
-            border: 1px solid #004d00;
-            padding: 15px;
-            overflow-y: auto;
-            margin-bottom: 20px;
-            background: #000;
-            font-size: 1rem;
-            line-height: 1.5;
-            color: #fff;
-        }
+        /* 聊天區域 */
+        .chat-area { flex: 1; padding: 20px; overflow-y: auto; background-color: #7fb3d5; display: flex; flex-direction: column; gap: 15px; }
+        
+        .message { max-width: 80%; padding: 10px 15px; border-radius: 20px; font-size: 0.95rem; line-height: 1.4; position: relative; animation: popIn 0.3s ease; }
+        .msg-left { align-self: flex-start; background-color: white; color: #333; border-bottom-left-radius: 5px; }
+        .msg-right { align-self: flex-end; background-color: #95e1d3; color: #333; border-bottom-right-radius: 5px; }
+        
+        /* 底部選項區 */
+        .controls { padding: 20px; background: white; border-top: 1px solid #ddd; }
+        .btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+        
+        button { padding: 12px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.2s; }
+        .btn-ask { background-color: #3498db; color: white; }
+        .btn-trust { background-color: #27ae60; color: white; width: 100%; }
+        .btn-report { background-color: #c0392b; color: white; width: 100%; }
+        button:disabled { background-color: #ccc; cursor: not-allowed; }
 
-        .wolf-text { color: #ff4d4d; } /* 狼的字是紅色的 */
-        .system-text { color: #0f0; font-style: italic; }
+        /* 結果視窗 */
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); align-items: center; justify-content: center; text-align: center; color: white; padding: 20px; box-sizing: border-box; }
+        .modal.active { display: flex; }
+        .metadata-box { background: rgba(255,255,255,0.1); border: 1px solid white; padding: 15px; margin-top: 20px; text-align: left; font-size: 0.9rem; }
 
-        /* 測謊儀顯示器 */
-        .monitor-box {
-            position: relative;
-            background: #000;
-            border: 1px solid #004d00;
-            height: 120px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-bottom: 20px;
-            overflow: hidden;
-        }
-
-        canvas { width: 100%; height: 100%; }
-
-        /* 狀態數據 */
-        .status-bar {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 10px;
-            font-size: 0.9rem;
-        }
-
-        /* 操控按鈕 */
-        .btn-action {
-            width: 100%;
-            padding: 15px;
-            background: #003300;
-            color: #0f0;
-            border: 1px solid #0f0;
-            font-size: 1.2rem;
-            font-weight: bold;
-            cursor: pointer;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            transition: all 0.1s;
-        }
-
-        .btn-action:active { background: #0f0; color: #000; }
-        .btn-action:disabled { background: #111; color: #555; border-color: #333; cursor: not-allowed; }
-
-        /* 回首頁按鈕 (右下角懸浮) */
+        /* 回首頁按鈕 (懸浮於右下角) */
         .home-btn {
             position: fixed;
             bottom: 20px;
             right: 20px;
             padding: 10px 20px;
-            background: rgba(0, 50, 0, 0.8);
-            border: 1px solid #0f0;
-            color: #0f0;
+            background-color: #2c3e50;
+            color: white;
             text-decoration: none;
+            border-radius: 30px;
             font-weight: bold;
-            font-size: 0.9rem;
-            z-index: 50;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.2);
             transition: all 0.3s;
+            z-index: 100;
         }
         .home-btn:hover {
-            background: #0f0;
-            color: #000;
+            background-color: #34495e;
+            transform: translateY(-2px);
         }
 
-        /* 結果通知 */
-        .alert {
-            position: absolute;
-            top: 50%; left: 50%;
-            transform: translate(-50%, -50%);
-            padding: 20px;
-            background: rgba(0,0,0,0.9);
-            border: 2px solid #0f0;
-            text-align: center;
-            z-index: 10;
-            display: none;
-            width: 80%;
-            max-width: 400px;
-        }
+        /* 結局畫面的按鈕群組 */
+        .modal-btn-group { margin-top: 20px; display: flex; gap: 10px; justify-content: center; }
+        .modal-btn { padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; font-size: 1rem; font-weight: bold; text-decoration: none; display: inline-block; }
+        .modal-btn-retry { background: white; color: #333; }
+        .modal-btn-home { background: #3498db; color: white; }
 
-        /* 抖動特效 */
-        .glitch { animation: glitch-anim 0.3s infinite; }
-        @keyframes glitch-anim {
-            0% { transform: translate(0) }
-            20% { transform: translate(-2px, 2px) }
-            40% { transform: translate(-2px, -2px) }
-            60% { transform: translate(2px, 2px) }
-            80% { transform: translate(2px, -2px) }
-            100% { transform: translate(0) }
-        }
+        @keyframes popIn { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
     </style>
 </head>
 <body>
 
-<div class="screen-container">
-    <h1>VOICE_ANALYSIS_PROTOCOL // v2.0</h1>
+<div class="phone-frame">
+    <div class="chat-header">與 "奶奶" 的對話</div>
+    <div class="chat-area" id="chat-box">
+        <div class="message msg-left">小紅帽，快進來，門沒鎖...</div>
+    </div>
     
-    <div class="status-bar">
-        <span>INTEGRITY(信用值): <span id="hp-val">100%</span></span>
-        <span>TARGET_STRESS(對方壓力): <span id="stress-val">0%</span></span>
+    <div class="controls">
+        <div class="btn-grid">
+            <button class="btn-ask" onclick="ask('ears')" id="btn-ears">🔍 檢查耳朵</button>
+            <button class="btn-ask" onclick="ask('eyes')" id="btn-eyes">🔍 檢查眼睛</button>
+            <button class="btn-ask" onclick="ask('teeth')" id="btn-teeth">🔍 檢查牙齒</button>
+            <button class="btn-ask" onclick="ask('voice')" id="btn-voice">🔍 檢查聲音</button>
+        </div>
+        <div class="btn-grid">
+            <button class="btn-trust" onclick="decide('trust')">💖 相信並進門</button>
+            <button class="btn-report" onclick="decide('report')">🚨 檢舉假帳號 (逃跑)</button>
+        </div>
     </div>
-
-    <div class="monitor-box" id="monitor">
-        <canvas id="waveCanvas"></canvas>
-    </div>
-
-    <div class="dialogue-box" id="chat-box">
-        <div class="system-text">> 系統連線成功...</div>
-        <div class="system-text">> 音訊串流分析啟動...</div>
-        <div class="system-text">> 等待語音輸入...</div>
-    </div>
-
-    <button class="btn-action" id="btn-doubt" onclick="checkLie()">🚨 標記異常 (SPACE)</button>
 </div>
 
-<a href="index.html" class="home-btn">[ HOME ]</a>
+<a href="index.html" class="home-btn">🏠 回首頁</a>
 
-<div id="end-screen" class="alert">
-    <h2 id="end-title"></h2>
-    <p id="end-desc"></p>
-    <div style="margin-top: 20px;">
-        <button class="btn-action" onclick="location.reload()" style="font-size:1rem; padding:10px; margin-bottom:10px;">REBOOT SYSTEM</button>
-        <button class="btn-action" onclick="location.href='index.html'" style="font-size:1rem; padding:10px;">RETURN HOME</button>
+<div id="result-modal" class="modal">
+    <div>
+        <h1 id="res-title"></h1>
+        <p id="res-desc" style="font-size: 1.2rem;"></p>
+        <div class="metadata-box">
+            <strong>【版本考證 Metadata】</strong><br>
+            <span id="res-meta"></span>
+        </div>
+        
+        <div class="modal-btn-group">
+            <button onclick="location.reload()" class="modal-btn modal-btn-retry">重新連線</button>
+            <a href="index.html" class="modal-btn modal-btn-home">回首頁</a>
+        </div>
     </div>
 </div>
 
 <script>
-    // --- 遊戲變數 ---
-    let hp = 100;
-    let stress = 0; // 達到 100 狼就會崩潰(勝利)
-    let isSpeaking = false;
-    let isLying = false; // 目前是否正在說謊(訊號異常)
-    let currentDialogueIndex = 0;
-    
-    // 畫布設定
-    const canvas = document.getElementById('waveCanvas');
-    const ctx = canvas.getContext('2d');
-    let time = 0;
-    let amplitude = 10;
-    let frequency = 0.05;
-    let waveColor = '#0f0';
+    const chatBox = document.getElementById('chat-box');
+    let suspicionLevel = 0;
 
-    // 對話腳本 (text: 文字, duration: 說話時間, lies: [謊言開始秒數, 謊言結束秒數])
-    const script = [
-        { text: "小紅帽...快進來...門沒鎖...", duration: 3000, lies: [[0.5, 1.5]] }, // "快進來"是謊話
-        { text: "奶奶只是...感冒了，聲音才這麼低沉。", duration: 4000, lies: [[1.5, 2.5]] }, // "感冒"是謊話
-        { text: "耳朵大是為了...聽清楚妳的聲音啊。", duration: 3500, lies: [] }, // 這是實話/敷衍，無異常
-        { text: "眼睛大是為了...看清楚妳可愛的臉。", duration: 3500, lies: [] }, // 這是實話
-        { text: "牙齒尖是因為...我剛裝了假牙！", duration: 3000, lies: [[1.8, 2.8]] }, // "假牙"是超大謊言
-        { text: "過來...讓奶奶抱抱妳...", duration: 5000, lies: [[0.5, 4.5]] } // 整句都是危險謊言
-    ];
+    const responses = {
+        'ears': "喔...那是為了更清楚聽到妳的聲音啊，親愛的。",
+        'eyes': "那是...為了更清楚看到妳可愛的臉龐啊。",
+        'teeth': "這是...為了更方便把妳吃掉！ (對方收回了一則訊息)",
+        'voice': "咳咳...奶奶只是感冒了，聲音才這麼低沉。"
+    };
 
-    // --- 核心功能：波形繪製 (Oscilloscope) ---
-    function drawWave() {
-        // 設定 Canvas 大小
-        canvas.width = canvas.parentElement.clientWidth;
-        canvas.height = canvas.parentElement.clientHeight;
-        const centerY = canvas.height / 2;
+    function ask(type) {
+        // 1. 玩家發問
+        let questionText = "";
+        if(type === 'ears') questionText = "奶奶，妳的耳朵怎麼這麼大？";
+        if(type === 'eyes') questionText = "奶奶，妳的眼睛怎麼這麼大？";
+        if(type === 'teeth') questionText = "奶奶，妳的牙齒怎麼這麼尖？";
+        if(type === 'voice') questionText = "奶奶，妳的聲音聽起來怪怪的？";
 
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        ctx.beginPath();
-        ctx.strokeStyle = waveColor;
-        ctx.lineWidth = 2;
+        addMessage(questionText, 'right');
+        document.getElementById('btn-'+type).disabled = true; // 禁用按鈕
 
-        for (let x = 0; x < canvas.width; x++) {
-            // 如果正在說謊，波形會變得混亂
-            let localAmp = amplitude;
-            let localFreq = frequency;
-            
-            if (isLying) {
-                // 模擬雜訊 (Noise)
-                localAmp = 40 + Math.random() * 20;
-                localFreq = 0.2;
-                ctx.lineWidth = 3;
-            } else if (!isSpeaking) {
-                // 靜音狀態
-                localAmp = 2;
-            }
-
-            const y = centerY + Math.sin(x * localFreq + time) * localAmp;
-            ctx.lineTo(x, y);
-        }
-        ctx.stroke();
-        time += 0.2;
-        requestAnimationFrame(drawWave);
-    }
-
-    // --- 遊戲邏輯 ---
-    function nextLine() {
-        if (currentDialogueIndex >= script.length) {
-            endGame(true); // 對話結束還活著 = 勝利
-            return;
-        }
-
-        const line = script[currentDialogueIndex];
-        const chatBox = document.getElementById('chat-box');
-        
-        // 顯示文字
-        const div = document.createElement('div');
-        div.className = 'wolf-text';
-        div.innerText = `[AUDIO]: "${line.text}"`;
-        chatBox.appendChild(div);
-        chatBox.scrollTop = chatBox.scrollHeight;
-
-        // 開始模擬語音
-        isSpeaking = true;
-        let startTime = Date.now();
-
-        // 監控謊言時間區間
-        const lieCheckInterval = setInterval(() => {
-            let elapsed = (Date.now() - startTime) / 1000;
-            
-            // 檢查現在是否在謊言區間內
-            let inLieZone = false;
-            for (let range of line.lies) {
-                if (elapsed >= range[0] && elapsed <= range[1]) {
-                    inLieZone = true;
-                    break;
-                }
-            }
-
-            if (inLieZone) {
-                triggerLieMode(true);
+        // 2. 系統延遲回覆
+        setTimeout(() => {
+            let reply = responses[type];
+            if(type === 'teeth') {
+                reply = "那是為了...方便吃...喔不，是為了咀嚼硬的食物！";
+                suspicionLevel += 2;
             } else {
-                triggerLieMode(false);
+                suspicionLevel += 1;
             }
-
-            // 說話結束
-            if (elapsed * 1000 > line.duration) {
-                clearInterval(lieCheckInterval);
-                isSpeaking = false;
-                triggerLieMode(false); // 確保波形歸零
-                
-                // 進入下一句前的延遲
-                setTimeout(nextLine, 2000);
-            }
-        }, 100);
-
-        currentDialogueIndex++;
+            addMessage(reply, 'left');
+        }, 1000);
     }
 
-    function triggerLieMode(active) {
-        if (active) {
-            isLying = true;
-            waveColor = '#ff0000'; // 變紅
-            document.getElementById('monitor').classList.add('glitch'); // 畫面抖動
-        } else {
-            isLying = false;
-            waveColor = '#0f0'; // 變綠
-            document.getElementById('monitor').classList.remove('glitch');
-        }
-    }
-
-    // --- 玩家互動 ---
-    function checkLie() {
-        if (hp <= 0) return;
-
-        const btn = document.getElementById('btn-doubt');
-        
-        // 視覺回饋
-        btn.style.background = '#fff';
-        setTimeout(() => btn.style.background = '', 100);
-
-        if (isLying) {
-            // 抓到了！
-            stress += 20;
-            showMessage("✅ 異常訊號捕獲！(SUCCESS)");
-            document.getElementById('stress-val').innerText = stress + "%";
-            
-            // 狼受到干擾，謊言中斷
-            triggerLieMode(false); 
-        } else {
-            // 誤判！
-            hp -= 20;
-            showMessage("❌ 誤判正常訊號！(FALSE POSITIVE)");
-            document.getElementById('hp-val').innerText = hp + "%";
-            document.getElementById('hp-val').style.color = '#ff0000';
-        }
-
-        checkStatus();
-    }
-
-    function showMessage(msg) {
-        const chatBox = document.getElementById('chat-box');
-        const div = document.createElement('div');
-        div.className = 'system-text';
-        div.innerText = `> ${msg}`;
-        chatBox.appendChild(div);
+    function addMessage(text, side) {
+        const msgDiv = document.createElement('div');
+        msgDiv.className = `message msg-${side}`;
+        msgDiv.innerText = text;
+        chatBox.appendChild(msgDiv);
         chatBox.scrollTop = chatBox.scrollHeight;
     }
 
-    function checkStatus() {
-        if (hp <= 0) {
-            endGame(false);
-        }
-        if (stress >= 100) {
-            endGame(true);
-        }
-    }
+    function decide(choice) {
+        const modal = document.getElementById('result-modal');
+        const title = document.getElementById('res-title');
+        const desc = document.getElementById('res-desc');
+        const meta = document.getElementById('res-meta');
 
-    function endGame(win) {
-        isSpeaking = false;
-        isLying = false;
-        const screen = document.getElementById('end-screen');
-        const title = document.getElementById('end-title');
-        const desc = document.getElementById('end-desc');
-        
-        screen.style.display = 'block';
+        modal.classList.add('active');
 
-        if (win) {
-            title.innerText = "偵測成功：身分確認";
-            title.style.color = "#0f0";
-            desc.innerText = "妳成功辨識了 Deepfake 語音特徵。目標（大野狼）因壓力過大而露出馬腳。妳啟動了緊急防禦系統並成功逃脫。";
+        if (choice === 'trust') {
+            // 悲劇 (佩羅版)
+            title.innerText = "❌ 查核失敗：妳被吃掉了";
+            desc.innerText = "妳相信了錯誤的資訊來源，大野狼把妳吞進肚子裡。";
+            meta.innerHTML = "出處：Charles Perrault (1697)<br>說明：早期的版本是為了警示宮廷女性小心陌生男子，沒有獵人，結局是純粹的悲劇。";
         } else {
-            title.innerText = "系統崩潰：遭到入侵";
-            title.style.color = "#f00";
-            desc.innerText = "信用值歸零。妳未能及時分辨真偽，或者產生了太多次誤判。大野狼成功騙過了妳的防火牆...";
+            // 喜劇 (格林版/現代版)
+            title.innerText = "✅ 查核成功：成功逃脫";
+            desc.innerText = "妳發現對方特徵不符，拒絕存取並尋求獵人協助。";
+            meta.innerHTML = "出處：Grimm Brothers (1812)<br>說明：格林兄弟蒐集的版本加入了「獵人」角色，賦予故事救援與重生的希望，符合當時強調家庭與秩序的價值觀。";
         }
     }
-
-    // 支援鍵盤操作
-    document.addEventListener('keydown', (e) => {
-        if (e.code === 'Space') {
-            checkLie();
-        }
-    });
-
-    // 啟動動畫與遊戲
-    drawWave();
-    setTimeout(nextLine, 1000); // 1秒後開始第一句
-
 </script>
 </body>
 </html>
