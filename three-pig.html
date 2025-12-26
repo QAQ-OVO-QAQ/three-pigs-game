@@ -18,6 +18,17 @@
             user-select: none;
         }
 
+        /* 遊戲說明文字 */
+        .subtitle {
+            color: #bdc3c7;
+            font-size: 1rem;
+            margin-top: 5px;
+            margin-bottom: 20px;
+            background: rgba(0,0,0,0.2);
+            padding: 5px 15px;
+            border-radius: 20px;
+        }
+
         /* 戰場區域 */
         .battlefield {
             width: 100%; max-width: 600px;
@@ -98,6 +109,8 @@
 </head>
 <body>
 
+    <p class="subtitle">請在大野狼的攻擊底下撐過十回合</p>
+
     <div class="battlefield">
         <div class="wolf-area">
             <div id="wolf" class="wolf-avatar">🐺</div>
@@ -137,7 +150,7 @@
     let hp = 100;
     const maxHp = 100;
     let turn = 1;
-    let wolfMove = null; // 'blow', 'climb', 'ram'
+    let wolfMove = null;
 
     // 卡牌資料庫
     const cardDB = [
@@ -191,49 +204,55 @@
     }
 
     function playCard(card) {
-        // 視覺特效
-        document.getElementById('hand').innerHTML = ''; // 清空手牌避免連點
+        document.getElementById('hand').innerHTML = ''; // 清空手牌
         
         let damage = wolfMove.dmg;
+        let healAmount = 0;
         let msg = "";
+        let blocked = false;
 
-        // --- 判定邏輯 (檢索媒合) ---
+        // --- 判定邏輯修正 (先判定數值，最後再一次計算) ---
         
-        // 1. 特殊卡：回復
+        // 1. 回復卡：設定回復量，但不歸零傷害 (硬扛傷害同時修補)
         if (card.type === 'heal') {
-            const healAmount = 20;
-            hp = Math.min(maxHp, hp + healAmount);
-            msg = `你使用了 ${card.name}，房屋修復了！`;
-            // 回復卡不能完全抵擋攻擊，但能補血
-            // 讓傷害還是會進來，但有減免一點點獎勵
-            damage -= 10; 
+            healAmount = 20;
+            msg = `使用了 ${card.name}，房屋修復中...`;
         }
         // 2. 完美防禦/反擊 (卡牌 ID 在大野狼的 counter 列表裡)
         else if (wolfMove.counter.includes(card.id)) {
             damage = 0;
+            blocked = true;
             msg = `完美防禦！${card.name} 成功擋下了 ${wolfMove.name}！`;
             
             // 反擊特效
             document.getElementById('wolf').classList.add('shake');
             setTimeout(()=>document.getElementById('wolf').classList.remove('shake'), 500);
         }
-        // 3. 屬性錯誤 (例如：狼吹氣，你煮熱水)
+        // 3. 屬性錯誤 (無效策略)
         else {
-            msg = `無效的策略！${card.name} 對 ${wolfMove.name} 沒有作用！`;
-            // 傷害全吃
+            msg = `無效策略！${card.name} 擋不住 ${wolfMove.name}！`;
         }
 
-        // 結算傷害
+        // --- 數值結算 (核心修正：先扣血再補血，確保不會先頂到100被吃掉) ---
+        hp = hp - damage + healAmount;
+        
+        // 如果超過上限，切回 100
+        if (hp > maxHp) hp = maxHp;
+
+        // 更新特效與訊息
         if (damage > 0) {
-            hp -= damage;
             document.getElementById('wolf').classList.add('attack-anim');
             setTimeout(()=>document.getElementById('wolf').classList.remove('attack-anim'), 300);
-            
-            // 震動畫面
             document.body.classList.add('shake');
             setTimeout(()=>document.body.classList.remove('shake'), 500);
             
-            if (!msg.includes("修復")) msg += ` 房屋受到了 ${damage} 點傷害！`;
+            // 補充訊息：如果有補血，顯示淨變化
+            if (healAmount > 0) {
+                let netChange = healAmount - damage;
+                msg += ` (受到 ${damage} 傷害，回復 ${healAmount})`; 
+            } else {
+                msg += ` 房屋受到了 ${damage} 點傷害！`;
+            }
         }
 
         // 更新 UI
@@ -247,7 +266,7 @@
             setTimeout(() => endGame(true), 1000);
         } else {
             turn++;
-            setTimeout(nextTurn, 1500); // 延遲進入下一回合
+            setTimeout(nextTurn, 1500);
         }
     }
 
