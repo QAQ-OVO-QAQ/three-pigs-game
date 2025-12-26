@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>糖果屋：葛麗特的逆襲</title>
+    <title>糖果屋：葛麗特的逆襲 (多重結局版)</title>
     <style>
         body {
             font-family: "Microsoft JhengHei", sans-serif;
-            background-color: #2c0e0e; /* 深紅褐色背景 */
+            background-color: #1a0505;
             color: #ddd;
             display: flex;
             flex-direction: column;
@@ -17,294 +17,305 @@
             user-select: none;
         }
 
-        h1 { margin-top: 15px; color: #e74c3c; text-shadow: 2px 2px 0 #000; }
+        h1 { margin-top: 15px; color: #c0392b; text-shadow: 2px 2px 0 #000; }
 
-        /* 遊戲主畫面 (房間) */
+        /* 警戒條 */
+        .bar-container { width: 90%; max-width: 600px; background: #333; height: 20px; border-radius: 10px; margin-bottom: 10px; border: 2px solid #555; position: relative; overflow: hidden; }
+        .bar-fill { height: 100%; background: linear-gradient(90deg, #f1c40f, #e74c3c); width: 0%; transition: width 0.5s; }
+        .bar-text { position: absolute; top: 0; left: 10px; font-size: 0.8rem; line-height: 20px; color: white; text-shadow: 1px 1px 2px black; font-weight: bold; }
+
+        /* 房間場景 */
         .room-container {
-            width: 90%;
-            max-width: 600px;
-            height: 350px;
-            background-color: #4a2c2c;
-            border: 4px solid #8e44ad;
+            width: 90%; max-width: 600px; height: 350px;
+            background-color: #3e2723;
+            border: 4px solid #5d4037;
             border-radius: 10px;
             position: relative;
-            margin-top: 10px;
-            box-shadow: 0 0 20px rgba(0,0,0,0.5);
+            box-shadow: 0 0 30px rgba(0,0,0,0.8);
+            background-image: radial-gradient(circle at center, #5d4037 0%, #281a16 100%);
             overflow: hidden;
-            background-image: radial-gradient(circle, #5e3b3b 10%, #2c0e0e 90%);
         }
 
-        /* 房間內的物件 */
-        .obj {
-            position: absolute;
-            cursor: pointer;
-            transition: transform 0.2s;
-            text-align: center;
-            font-size: 3rem;
-            filter: drop-shadow(0 5px 5px rgba(0,0,0,0.5));
-        }
-        .obj:hover { transform: scale(1.1); filter: drop-shadow(0 0 10px #f1c40f); }
-        .obj-label { font-size: 0.9rem; background: rgba(0,0,0,0.7); color: white; padding: 2px 5px; border-radius: 4px; display: block; margin-top: -10px; pointer-events: none;}
+        /* 物件樣式 */
+        .obj { position: absolute; cursor: pointer; transition: transform 0.2s; font-size: 3.5rem; filter: drop-shadow(0 5px 5px rgba(0,0,0,0.5)); }
+        .obj:hover { transform: scale(1.1); filter: drop-shadow(0 0 10px #f39c12); }
+        .obj-label { font-size: 0.8rem; background: rgba(0,0,0,0.8); color: white; padding: 2px 5px; border-radius: 4px; display: block; margin-top: -5px; text-align: center; opacity: 0; transition: opacity 0.3s; pointer-events: none; }
+        .obj:hover .obj-label { opacity: 1; }
 
-        /* 位置設定 */
-        #cage { top: 30px; left: 30px; font-size: 4rem; } /* 韓賽爾的籠子 */
-        #oven { bottom: 20px; right: 30px; font-size: 5rem; } /* 烤箱 */
-        #witch { top: 80px; right: 120px; font-size: 4.5rem; display: none; } /* 女巫 */
-        #table { bottom: 20px; left: 50px; font-size: 4rem; } /* 桌子 */
-        #cupboard { top: 30px; right: 30px; font-size: 4rem; } /* 櫥櫃 */
+        /* 位置 */
+        #cage { top: 20px; left: 20px; font-size: 4rem; }
+        #oven { bottom: 20px; right: 20px; font-size: 5rem; }
+        #witch { top: 50px; right: 100px; font-size: 5rem; z-index: 5; display: none; }
+        #table { bottom: 20px; left: 80px; font-size: 3.5rem; }
+        #cupboard { top: 20px; right: 30px; font-size: 4rem; }
+        #door { top: 130px; left: 10px; font-size: 4rem; filter: brightness(0.5); }
+
+        /* 動作選單 (點擊物件後彈出) */
+        .action-menu {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            background: rgba(0,0,0,0.95); border: 2px solid #f1c40f; padding: 20px;
+            border-radius: 10px; z-index: 20; display: none; text-align: center; min-width: 200px;
+        }
+        .action-btn {
+            display: block; width: 100%; margin: 10px 0; padding: 10px;
+            background: #34495e; color: white; border: none; cursor: pointer; border-radius: 5px; font-size: 1rem;
+        }
+        .action-btn:hover { background: #2980b9; }
+        .btn-danger { background: #c0392b; }
+        .btn-danger:hover { background: #a93226; }
 
         /* 道具欄 */
-        .inventory-box {
-            width: 90%; max-width: 600px;
-            background: #222;
-            border: 2px solid #555;
-            padding: 10px;
-            margin-top: 10px;
-            display: flex;
-            gap: 10px;
-            min-height: 60px;
-            align-items: center;
-        }
-        .inv-title { font-size: 0.9rem; color: #aaa; margin-right: 10px; }
-        .item {
-            background: #444; border: 1px solid #777; padding: 5px 10px; border-radius: 5px; cursor: pointer;
-        }
-        .item.selected { border: 2px solid #f1c40f; background: #555; }
-
-        /* 對話框 */
-        .dialogue-box {
-            width: 90%; max-width: 600px;
-            height: 120px;
-            background: rgba(0,0,0,0.8);
-            border: 2px solid #e74c3c;
-            border-radius: 10px;
-            padding: 15px;
-            margin-top: 10px;
-            font-size: 1rem;
-            line-height: 1.5;
-            overflow-y: auto;
-        }
-        .speaker { color: #f1c40f; font-weight: bold; margin-bottom: 5px; display: block; }
+        .inventory-box { width: 90%; max-width: 600px; background: #222; border: 2px solid #555; padding: 10px; margin-top: 10px; display: flex; gap: 10px; min-height: 50px; align-items: center; }
+        .item { background: #444; border: 1px solid #777; padding: 5px 10px; border-radius: 5px; font-size: 0.9rem; }
         
-        /* 操作按鈕區 */
-        .action-area { margin-top: 10px; display: flex; gap: 10px; }
-        .btn { padding: 8px 16px; background: #e67e22; border: none; color: white; border-radius: 5px; cursor: pointer; font-weight: bold; display: none; }
-        .btn:hover { background: #d35400; }
+        /* 對話框 */
+        .dialogue-box { width: 90%; max-width: 600px; height: 100px; background: rgba(0,0,0,0.6); border: 2px solid #888; border-radius: 10px; padding: 15px; margin-top: 10px; font-size: 0.95rem; line-height: 1.4; overflow-y: auto; }
+        .speaker { color: #f1c40f; font-weight: bold; display: block; margin-bottom: 5px; }
 
         /* 結局遮罩 */
-        .overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.95); z-index: 100;
-            display: none; flex-direction: column; justify-content: center; align-items: center;
-            text-align: center; color: white; padding: 20px;
-        }
+        .overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.98); z-index: 100; display: none; flex-direction: column; justify-content: center; align-items: center; text-align: center; color: white; padding: 20px; }
     </style>
 </head>
 <body>
 
-    <h1>🍬 糖果屋：葛麗特的逆襲</h1>
+    <h1>🍬 葛麗特的逆襲 (v2.0)</h1>
+
+    <div class="bar-container">
+        <div class="bar-text">女巫警戒值 (Suspicion)</div>
+        <div class="bar-fill" id="suspicion-bar"></div>
+    </div>
 
     <div class="room-container">
-        <div class="obj" id="cage" onclick="interact('cage')">
-            ⛓️👦
-            <span class="obj-label">哥哥的籠子</span>
-        </div>
+        <div class="obj" id="cage" onclick="openMenu('cage')">⛓️<span class="obj-label">哥哥的籠子</span></div>
+        <div class="obj" id="witch" onclick="openMenu('witch')">🧙‍♀️<span class="obj-label">瞎眼女巫</span></div>
+        <div class="obj" id="oven" onclick="openMenu('oven')">🔥<span class="obj-label">大烤箱</span></div>
+        <div class="obj" id="table" onclick="openMenu('table')">🍽️<span class="obj-label">餐桌</span></div>
+        <div class="obj" id="cupboard" onclick="openMenu('cupboard')">🗄️<span class="obj-label">雜物櫃</span></div>
+        <div class="obj" id="door" onclick="openMenu('door')">🚪<span class="obj-label">大門</span></div>
         
-        <div class="obj" id="witch" onclick="interact('witch')">
-            🧙‍♀️
-            <span class="obj-label">瞎眼女巫</span>
-        </div>
-
-        <div class="obj" id="oven" onclick="interact('oven')">
-            🔥
-            <span class="obj-label">大烤箱</span>
-        </div>
-
-        <div class="obj" id="table" onclick="interact('table')">
-            🍗
-            <span class="obj-label">剩菜桌</span>
-        </div>
-
-        <div class="obj" id="cupboard" onclick="interact('cupboard')">
-            🗄️
-            <span class="obj-label">雜物櫃</span>
+        <div class="action-menu" id="menu">
+            <h3 id="menu-title" style="color:#f1c40f; margin-top:0;">標題</h3>
+            <div id="menu-options"></div>
+            <button class="action-btn" onclick="closeMenu()" style="background:#555; margin-top:15px;">關閉</button>
         </div>
     </div>
 
     <div class="inventory-box">
-        <span class="inv-title">持有物品:</span>
+        <span style="color:#aaa; margin-right:10px;">持有:</span>
         <div id="inv-container" style="display:flex; gap:10px;"></div>
     </div>
 
     <div class="dialogue-box">
         <span class="speaker" id="speaker-name">系統</span>
-        <span id="dialogue-text">遊戲開始。妳是葛麗特，哥哥被關起來了，女巫正在準備今天的晚餐...也就是哥哥。妳必須想辦法救他！</span>
-    </div>
-
-    <div class="action-area">
-        <button class="btn" id="btn-push" onclick="pushWitch()">✋ 把她推進去！</button>
+        <span id="dialogue-text">妳是葛麗特。哥哥被關在籠子裡，女巫正在準備晚餐。妳必須找到骨頭騙過檢查，並伺機殺死女巫。小心別發出太大聲音！</span>
     </div>
 
     <div id="overlay" class="overlay">
-        <h2 id="end-title" style="font-size: 2.5rem; color: #f1c40f;"></h2>
+        <h2 id="end-title" style="font-size: 2.5rem; margin-bottom: 20px;"></h2>
         <p id="end-desc" style="font-size: 1.1rem; line-height: 1.6; max-width: 500px; color: #ccc; margin-bottom: 30px;"></p>
-        <div style="background:#333; padding:15px; border-left:4px solid #e74c3c; text-align:left; font-size:0.9rem; max-width:500px;">
-            <strong>【圖書資訊學觀點】</strong><br>
+        <div style="background:#222; padding:15px; border-left:4px solid #fff; text-align:left; font-size:0.9rem; max-width:500px;">
+            <strong style="color: #f1c40f;">【結局解析】</strong><br>
             <span id="lib-note"></span>
         </div>
-        <button class="btn" style="display:inline-block; margin-top:20px;" onclick="location.reload()">重新開始</button>
+        <button class="action-btn" style="width: auto; margin-top: 30px; padding: 10px 30px;" onclick="location.reload()">重新挑戰</button>
     </div>
 
 <script>
-    // --- 遊戲狀態 ---
+    // --- 遊戲變數 ---
+    let suspicion = 0;
     let inventory = [];
-    let selectedItem = null;
-    let phase = 0; 
-    // 0: 尋找骨頭
-    // 1: 餵食檢查 (使用骨頭)
-    // 2: 烤箱前置 (裝傻)
-    // 3: 決戰 (推女巫)
-
-    // --- 文本資料庫 ---
-    const texts = {
-        start: "女巫正在那邊磨刀霍霍。她說：「去看看那個男孩長肉了沒？要是夠胖了，我今天就把他烤來吃！」\n(提示：哥哥太瘦了會被吃掉，得找個東西騙騙那個瞎眼老太婆...)",
-        findBone: "我在桌上的剩菜堆裡找到了一根「吃剩的雞骨頭」。這東西硬硬細細的，摸起來有點像手指...",
-        witchCheck: "女巫大喊：「把手指伸出來！讓我摸摸看長肉了沒！」\n(請點擊道具欄的骨頭，然後點擊女巫)",
-        successBone: "女巫摸了摸雞骨頭，皺著眉頭說：「怎麼還是這麼瘦？像枯樹枝一樣！算了，還是先熱烤箱吧。」",
-        failBone: "妳沒有拿出東西騙她。女巫摸了哥哥的手指，大叫：「哇！肉很多嘛！今天就吃烤人肉！」(Game Over)",
-        ovenPhase: "女巫走向烤箱，火燒得很旺。她轉頭對妳說：「葛麗特，爬進去看看溫度夠不夠？」\n(千萬不能進去！要想辦法拒絕她)",
-        playDumb: "妳裝出一副笨拙的樣子：「我不懂...這個洞這麼小，我怎麼進得去？」\n女巫不耐煩了：「笨蛋！連這都不會？看我示範給妳看！」",
-        climax: "女巫把頭探進了烤箱...這是千載難逢的機會！"
-    };
+    let phase = 0; // 0: 探索, 1: 檢查手指, 2: 烤箱對決
+    let isCageUnlocked = false;
 
     // --- 互動邏輯 ---
-    function interact(target) {
-        const dialog = document.getElementById('dialogue-text');
-        const speaker = document.getElementById('speaker-name');
+    function openMenu(target) {
+        if (checkGameOver()) return;
 
-        // 1. 點擊桌子 (獲得骨頭)
+        const menu = document.getElementById('menu');
+        const title = document.getElementById('menu-title');
+        const options = document.getElementById('menu-options');
+        
+        menu.style.display = 'block';
+        options.innerHTML = ''; // 清空選項
+
+        // 根據目標生成選項
         if (target === 'table') {
+            title.innerText = "餐桌";
             if (!hasItem('bone')) {
-                addItem('bone', '🍗 雞骨頭');
-                speaker.innerText = "葛麗特";
-                dialog.innerText = texts.findBone;
-                // 推進劇情
-                setTimeout(() => {
-                    document.getElementById('witch').style.display = 'block';
-                    speaker.innerText = "女巫";
-                    dialog.innerText = texts.witchCheck;
-                    phase = 1;
-                }, 3000);
+                addOption("仔細翻找 (安全)", () => { getItem('bone', '🍗 雞骨頭'); say("我在剩菜裡找到一根雞骨頭！這形狀跟手指很像。"); });
+                addOption("隨便亂翻 (快但吵)", () => { getItem('bone', '🍗 雞骨頭'); addSuspicion(30); say("妳弄翻了盤子！聲音很大，希望女巫沒聽到..."); });
             } else {
-                dialog.innerText = "桌上只剩下爛菜葉了，沒有其他有用的東西。";
+                addOption("檢查其他東西", () => say("桌上只剩下爛菜葉了。"));
+            }
+        } 
+        else if (target === 'cupboard') {
+            title.innerText = "雜物櫃";
+            if (!hasItem('key')) {
+                addOption("輕輕打開 (慢)", () => { say("櫃子鎖住了...需要鑰匙或者撬開？"); });
+                addOption("暴力撬開 (極度危險)", () => { 
+                    addSuspicion(100); // 直接 Game Over
+                }, true);
+                addOption("仔細摸索頂端", () => { 
+                    getItem('key', '🗝️ 鑰匙'); say("運氣真好！女巫把鑰匙藏在櫃子頂端。"); 
+                });
+            } else {
+                addOption("看看裡面", () => say("裡面有一些珠寶，但現在拿會發出聲音。先救人要緊。"));
             }
         }
-
-        // 2. 點擊女巫 (關鍵互動)
-        if (target === 'witch') {
-            if (phase === 1) {
-                if (selectedItem === 'bone') {
-                    // 成功騙過
-                    speaker.innerText = "女巫";
-                    dialog.innerText = texts.successBone;
-                    // 移除骨頭
-                    removeItem('bone');
-                    phase = 2;
-                    setTimeout(startOvenPhase, 3000);
+        else if (target === 'cage') {
+            title.innerText = "哥哥的籠子";
+            if (!isCageUnlocked) {
+                if (hasItem('key')) {
+                    addOption("用鑰匙解鎖", () => { isCageUnlocked = true; say("韓賽爾：『太好了！但我還不敢出來，怕被發現。等妳解決女巫！』"); });
                 } else {
-                    // 失敗
-                    speaker.innerText = "女巫";
-                    dialog.innerText = "妳在幹嘛？快叫妳哥哥把手指伸出來！(如果妳沒東西騙她，後果不堪設想...)";
+                    addOption("試著徒手掰開", () => { addSuspicion(20); say("鐵籠紋風不動，反而發出了金屬摩擦聲！"); });
+                    addOption("安慰哥哥", () => say("韓賽爾：『葛麗特...我好餓...別管我了，妳快逃吧...』"));
                 }
-            } else if (phase === 2) {
-                dialog.innerText = "她正在忙著弄烤箱，現在靠近她太危險了。";
+            } else {
+                addOption("叫哥哥出來", () => say("韓賽爾：『不行，女巫還在那裡！』"));
             }
         }
-
-        // 3. 點擊烤箱
-        if (target === 'oven') {
-            if (phase === 2) {
-                speaker.innerText = "葛麗特";
-                dialog.innerText = texts.playDumb;
-                phase = 3;
-                setTimeout(() => {
-                    document.getElementById('btn-push').style.display = 'block'; // 顯示推人按鈕
-                    dialog.innerText = texts.climax;
-                }, 3000);
-            } else if (phase < 2) {
-                dialog.innerText = "火燒得很旺，看起來非常燙。";
+        else if (target === 'door') {
+            title.innerText = "大門";
+            addOption("現在就逃跑 (拋棄哥哥)", () => triggerEnding('bad_run'));
+        }
+        else if (target === 'witch') {
+            title.innerText = "瞎眼女巫";
+            if (phase === 0) {
+                addOption("靠近她", () => say("她正在磨刀，現在靠近太危險了！"));
+                addOption("偷她的魔杖", () => { addSuspicion(50); say("妳差點被她抓到！太冒險了！"); }, true);
+            } else if (phase === 1) {
+                // 檢查手指階段
+                if (hasItem('bone')) {
+                    addOption("遞出雞骨頭 (欺騙)", () => { 
+                        removeItem('bone');
+                        phase = 2; 
+                        say("女巫：『怎麼還是枯樹枝一樣？太瘦了！算了，先把烤箱預熱！』");
+                        document.getElementById('oven').style.filter = "drop-shadow(0 0 15px red)";
+                        closeMenu();
+                    });
+                }
+                addOption("伸出真正的手指 (誠實?)", () => triggerEnding('bad_eaten'));
             }
         }
-
-        // 4. 其他物件
-        if (target === 'cage') {
-            speaker.innerText = "韓賽爾";
-            dialog.innerText = "「葛麗特...救我...老太婆要把我吃掉了...」";
+        else if (target === 'oven') {
+            title.innerText = "大烤箱";
+            if (phase < 2) {
+                addOption("檢查溫度", () => say("火還沒生起來。"));
+            } else {
+                // 決戰階段
+                addOption("把女巫推進去！(決戰)", () => triggerEnding('good_win'), true);
+                addOption("自己爬進去檢查 (順從)", () => triggerEnding('bad_baked'));
+                addOption("猶豫不決", () => { addSuspicion(20); say("女巫：『還在磨蹭什麼！快點！』"); });
+            }
         }
-        if (target === 'cupboard') {
-            dialog.innerText = "櫃子鎖住了，裡面好像藏著女巫的珠寶，但現在逃命要緊。";
-        }
     }
 
-    // --- 階段控制 ---
-    function startOvenPhase() {
-        document.getElementById('speaker-name').innerText = "女巫";
-        document.getElementById('dialogue-text').innerText = texts.ovenPhase;
+    // --- 輔助功能 ---
+    function addOption(text, callback, isDanger = false) {
+        const btn = document.createElement('button');
+        btn.innerText = text;
+        btn.className = isDanger ? 'action-btn btn-danger' : 'action-btn';
+        btn.onclick = () => {
+            callback();
+            if (!checkGameOver()) { // 如果沒死才關閉
+                 if(text.includes("推進去") || text.includes("爬進去") || text.includes("逃跑")) return; // 結局不關閉
+                 closeMenu();
+            }
+        };
+        document.getElementById('menu-options').appendChild(btn);
     }
 
-    function pushWitch() {
-        endGame(true);
+    function closeMenu() { document.getElementById('menu').style.display = 'none'; }
+    
+    function say(text) {
+        const speaker = text.includes("：") ? text.split("：")[0] : "系統";
+        const content = text.includes("：") ? text.split("：")[1] : text;
+        document.getElementById('speaker-name').innerText = speaker;
+        document.getElementById('dialogue-text').innerText = content;
     }
 
-    // --- 道具系統 ---
-    function addItem(id, name) {
+    function getItem(id, name) {
+        if (hasItem(id)) return;
         inventory.push(id);
-        const div = document.createElement('div');
-        div.className = 'item';
-        div.innerText = name;
-        div.id = 'item-' + id;
-        div.onclick = () => selectItem(id);
-        document.getElementById('inv-container').appendChild(div);
+        const el = document.createElement('div');
+        el.className = 'item';
+        el.innerText = name;
+        el.id = 'item-'+id;
+        document.getElementById('inv-container').appendChild(el);
     }
 
+    function hasItem(id) { return inventory.includes(id); }
     function removeItem(id) {
-        const idx = inventory.indexOf(id);
-        if (idx > -1) inventory.splice(idx, 1);
-        const el = document.getElementById('item-' + id);
-        if (el) el.remove();
-        selectedItem = null;
+        inventory = inventory.filter(i => i !== id);
+        document.getElementById('item-'+id).remove();
     }
 
-    function selectItem(id) {
-        selectedItem = id;
-        document.querySelectorAll('.item').forEach(el => el.classList.remove('selected'));
-        document.getElementById('item-' + id).classList.add('selected');
-        document.getElementById('dialogue-text').innerText = `(妳手上拿著 ${id === 'bone' ? '雞骨頭' : '未知物品'}，準備對誰使用？)`;
+    function addSuspicion(amount) {
+        suspicion += amount;
+        if (suspicion > 100) suspicion = 100;
+        document.getElementById('suspicion-bar').style.width = suspicion + "%";
+        
+        if (suspicion >= 100) {
+            closeMenu();
+            triggerEnding('bad_caught');
+        }
     }
 
-    function hasItem(id) {
-        return inventory.includes(id);
-    }
+    function checkGameOver() { return suspicion >= 100; }
+
+    // --- 劇情推進 ---
+    // 模擬 10 秒後女巫要檢查手指
+    setTimeout(() => {
+        if (phase === 0 && suspicion < 100) {
+            phase = 1;
+            document.getElementById('witch').style.display = 'block';
+            say("女巫：『過來！把手指伸出來讓我檢查！』(點擊女巫進行互動)");
+        }
+    }, 15000); // 15秒探索時間
 
     // --- 結局系統 ---
-    function endGame(win) {
+    function triggerEnding(type) {
         const overlay = document.getElementById('overlay');
         const title = document.getElementById('end-title');
         const desc = document.getElementById('end-desc');
         const note = document.getElementById('lib-note');
-
+        
         overlay.style.display = 'flex';
+        closeMenu();
 
-        if (win) {
-            title.innerText = "🏆 逃脫成功！";
-            desc.innerText = "妳用力一推，把壞心眼的女巫推進了火爐！妳救出了哥哥，並在櫃子裡發現了珍珠寶石，兩人平安回到了家。";
-            note.innerText = "在這個情節中，雞骨頭象徵著「資料偽造 (Data Spoofing)」，用來欺騙監控系統（女巫的觸覺檢查）。而最後的裝傻，則是典型的「社會工程學 (Social Engineering)」，利用人性的弱點（女巫的自大）來突破防禦。";
+        if (type === 'good_win') {
+            title.innerText = "🏆 完美結局：機智脫逃";
+            title.style.color = "#f1c40f";
+            let extra = isCageUnlocked ? "妳用鑰匙救出了哥哥，" : "但妳忘了拿鑰匙，花了好多時間才把籠子砸開。";
+            desc.innerText = "妳用力將女巫推進了火爐！" + extra + "兩人帶著珠寶平安回到了家。";
+            note.innerText = "成功運用了「偽造數據（雞骨頭）」欺騙監控者，並利用「社會工程學」引誘攻擊者暴露弱點。完美的資訊防禦戰！";
+        } 
+        else if (type === 'bad_caught') {
+            title.innerText = "💀 結局 C：被抓住了";
+            title.style.color = "#e74c3c";
+            desc.innerText = "妳發出的聲音太大了！女巫一把抓住了妳。妳和哥哥都變成了晚餐...";
+            note.innerText = "【異常行為偵測 (Anomaly Detection)】：系統偵測到未經授權的高風險操作（噪音/破壞），直接觸發了防禦機制（女巫攻擊）。在圖書館中，這就像試圖暴力破解資料庫而被防火牆封鎖。";
+        }
+        else if (type === 'bad_eaten') {
+            title.innerText = "💀 結局 B：哥哥被吃了";
+            title.style.color = "#e74c3c";
+            desc.innerText = "因為妳沒有用骨頭騙過女巫，她發現哥哥已經長胖了。哥哥被帶走了，而妳只能無助地看著...";
+            note.innerText = "【驗證失敗 (Verification Failed)】：未能提供有效的偽裝憑證。在資訊安全中，這代表身分驗證沒過，導致機密資料（哥哥）遭竊。";
+        }
+        else if (type === 'bad_baked') {
+            title.innerText = "💀 結局 D：成為烤肉";
+            title.style.color = "#e74c3c";
+            desc.innerText = "妳太過順從，真的爬進了烤箱。女巫無情地關上了門...";
+            note.innerText = "【釣魚攻擊受害者 (Phishing Victim)】：使用者缺乏警覺心，盲目聽從攻擊者的指令（爬進烤箱），導致自身帳號權限完全淪陷。";
+        }
+        else if (type === 'bad_run') {
+            title.innerText = "🏃 結局 E：懦弱的逃兵";
+            title.style.color = "#95a5a6";
+            desc.innerText = "妳丟下哥哥一個人跑了。雖然妳活了下來，但永遠活在愧疚之中。";
+            note.innerText = "【資料遺棄 (Data Abandonment)】：管理者放棄了核心資產（哥哥），只保住了部分系統。雖然生存，但造成了不可挽回的資料損失。";
         }
     }
-
-    // 初始化提示
-    document.getElementById('speaker-name').innerText = "劇情旁白";
-    document.getElementById('dialogue-text').innerText = texts.start;
 
 </script>
 </body>
